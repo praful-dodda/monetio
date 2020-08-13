@@ -419,11 +419,9 @@ def _fix_grib2(f):
     # f['latitude'] = range(len(f.latitude))
     # f['longitude'] = range(len(f.longitude))
     f = _rename_func(f, rename_dict)
-    f = f.rename({'latitude': 'y', 'longitude': 'x'})
-    # lon, lat = meshgrid(longitude, latitude)
-    # f['longitude'] = (('y', 'x'), lon)
-    # f['latitude'] = (('y', 'x'), lat)
-    f = f.set_coords(['latitude', 'longitude'])
+    f = f.rename({'latitude': 'lat', 'longitude': 'lon'})
+    f = _coards_to_netcdf(f)
+#    f = f.set_coords(['lat', 'lon'])
     # try:
     #     from pyresample import utils
     #     f['longitude'] = utils.wrap_longitudes(f.longitude)
@@ -485,3 +483,46 @@ def calc_nemsio_pressure(dset):
     pres.attrs['units'] = 'mb'
     pres.attrs['long_name'] = 'Mid Layer Pressure'
     return pres
+
+def wrap_longitudes(lons):
+    """Short summary.
+    Parameters
+    ----------
+    lons : type
+        Description of parameter `lons`.
+    Returns
+    -------
+    type
+        Description of returned object.
+    """
+    return (lons + 180) % 360 - 180
+
+
+def _coards_to_netcdf(dset, lat_name='lat', lon_name='lon'):
+    """Short summary.
+    Parameters
+    ----------
+    dset : type
+        Description of parameter `dset`.
+    lat_name : type
+        Description of parameter `lat_name`.
+    lon_name : type
+        Description of parameter `lon_name`.
+    Returns
+    -------
+    type
+        Description of returned object.
+    """
+    from numpy import meshgrid, arange
+    lon = wrap_longitudes(dset[lon_name])
+    lat = dset[lat_name]
+    lons, lats = meshgrid(lon, lat)
+    x = arange(len(lon))
+    y = arange(len(lat))
+    dset = dset.rename({lon_name: 'x', lat_name: 'y'})
+    dset.coords['longitude'] = (('y', 'x'), lons)
+    dset.coords['latitude'] = (('y', 'x'), lats)
+    dset['x'] = x
+    dset['y'] = y
+    dset = dset.set_coords(['latitude', 'longitude'])
+    return dset
