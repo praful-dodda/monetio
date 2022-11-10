@@ -10,7 +10,7 @@ First we will import several libraries to aid for in the future.
 
     import numpy as np          # numpy
     import pandas as pd         # pandas
-    from monet.obs import *     # observations from MONET
+    from monetio.obs import *     # observations from MONET
     import matplotlib.pyplot as plt # plotting
     import seaborn as sns       # better color palettes
     import cartopy.crs as ccrs  # map projections
